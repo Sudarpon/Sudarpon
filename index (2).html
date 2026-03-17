@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultimate Ad Loop - Click & Auto-Reload</title>
+    
+    <script src='//libtl.com/sdk.js' data-zone='10632133' data-sdk='show_10632133'></script>
+
+    <style>
+        body {
+            background-color: #000;
+            color: #fff;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+        }
+        .container {
+            padding: 30px;
+            border: 2px solid #00ffcc;
+            border-radius: 20px;
+            background: rgba(0, 255, 204, 0.05);
+            min-width: 300px;
+        }
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #222;
+            border-top: 5px solid #00ffcc;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        #status { font-size: 20px; color: #00ffcc; font-weight: bold; }
+        #timer { margin-top: 15px; font-size: 18px; color: #ffcc00; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div id="loader" class="spinner"></div>
+        <div id="status">সিস্টেম প্রস্তুত হচ্ছে...</div>
+        <div id="timer">অ্যাড লোড হচ্ছে, অপেক্ষা করুন</div>
+    </div>
+
+    <script>
+        const statusText = document.getElementById('status');
+        const timerText = document.getElementById('timer');
+        
+        let adStarted = false;
+
+        // ১৭ সেকেন্ড পর অটোমেটিক রিলোড ফাংশন
+        function autoReload() {
+            let seconds = 17;
+            const interval = setInterval(() => {
+                timerText.innerText = "পেজ অটো-রিলোড হবে: " + seconds + " সেকেন্ডে";
+                seconds--;
+                if (seconds < 0) {
+                    clearInterval(interval);
+                    window.location.reload();
+                }
+            }, 1000);
+        }
+
+        async function startAdEngine() {
+            if (adStarted) return;
+            
+            // নতুন SDK ফাংশন (show_10632133) চেক করা হচ্ছে
+            if (typeof window.show_10632133 === "function") {
+                adStarted = true;
+                statusText.innerText = "অ্যাড লোড করা হচ্ছে...";
+                
+                // নতুন অ্যাড প্রদর্শন
+                window.show_10632133()
+                .then(() => {
+                    statusText.innerText = "অ্যাড সফল! এবার ক্লিক করুন।";
+                    statusText.style.color = "#00ff00";
+                })
+                .catch(e => {
+                    console.log("Ad Error, Retrying...");
+                    adStarted = false;
+                    setTimeout(startAdEngine, 2000);
+                });
+            } else {
+                // স্ক্রিপ্ট লোড না হওয়া পর্যন্ত ১ সেকেন্ড পর পর চেষ্টা করবে
+                setTimeout(startAdEngine, 1000);
+            }
+        }
+
+        // ইউজার ট্যাব পরিবর্তন করে ফিরে আসলে অটো রিলোড
+        document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === 'visible') {
+                window.location.reload();
+            }
+        });
+
+        window.onload = () => {
+            startAdEngine();
+            autoReload(); 
+        };
+
+        // ব্যাকআপ: স্ক্রিনে কোথাও ক্লিক করলে অ্যাড ট্রিগার হবে
+        document.body.onclick = () => {
+            if (!adStarted) startAdEngine();
+        };
+    </script>
+</body>
+</html>
